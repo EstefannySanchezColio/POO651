@@ -1,0 +1,50 @@
+package servicios;
+
+import java.io.BufferedReader; //calcular los totales de gastos de cada tipo de servicio
+import java.io.FileReader; // abrir el archivo de texto especificado por la variable nombreArchivo
+import java.io.IOException; //errores
+import java.util.HashMap;//almacena los totales de gastos de cada tipo de servicio.
+import java.util.Map; //gestionar los totales de gastos de los servicios.
+
+public class Servicios {
+
+    public static void main(String[] args) {
+        // Nombre del archivo de texto
+        String nombreArchivo = "PagoServicios.txt";
+
+        // Crear un mapa para almacenar los totales de cada servicio
+        Map<String, Integer> totalesServicios = new HashMap<>();
+        //esto declara una variable totalesServicios
+        //HashMap se usa para almacenar y gestionar los totales de servicios.
+        
+        //abrir y leer el archivo de texto especificado de manera eficiente y segura.
+        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                // Dividir la línea en palabras
+                String[] palabras = linea.split(" ");
+
+                // Comprobar si la línea tiene los datos esperados que si esten 
+                if (palabras.length >= 5) {
+                    String servicio = palabras[palabras.length - 3]; 
+                    String montoStr = palabras[palabras.length - 2]; 
+                    int monto = Integer.parseInt(montoStr); //extraer el monto de gasto de una línea en el archivo de texto.
+
+                    // Actualizar el total del servicio
+                    totalesServicios.put(servicio, totalesServicios.getOrDefault(servicio, 0) + monto);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        }
+
+        // Imprimir los totales en una tabla 
+        System.out.println("Servicio\tTotal");
+        for (String servicio : new String[] { "Electricidad", "Agua", "Gas", "Internet" }) {
+            System.out.printf("%-17s%d%n", servicio, totalesServicios.getOrDefault(servicio, 0));
+            //esto se utiliza para asignar los caracteres, es decir, espacios
+        }
+    }
+}
+
+

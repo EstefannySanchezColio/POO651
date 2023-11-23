@@ -1,0 +1,189 @@
+package inventario;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.LinkedList;
+
+class Producto {
+    String nombre;
+    double precio;
+    int cantidad;
+
+    public Producto(String nombre, double precio, int cantidad) {
+        this.nombre = nombre;
+        this.precio = precio;      //Declara los parámetros que se deben proporcionar al llamar al constructor
+        this.cantidad = cantidad;
+    }
+
+    public double calcularValor() {
+        return precio * cantidad;
+    }
+}
+
+public class Inventario extends JFrame {
+    private LinkedList<Producto> listaProductos;//declaramos una variable privada 
+    private DefaultTableModel tableModel;
+    private JTable jTable;
+
+    public Inventario() {
+        listaProductos = new LinkedList<>();//crea una nueva instancia
+
+        tableModel = new DefaultTableModel();
+        tableModel.addColumn("Nombre");
+        tableModel.addColumn("Precio");
+        tableModel.addColumn("Cantidad");
+
+        jTable = new JTable(tableModel);
+
+        JButton agregarButton = new JButton("Agregar Producto");
+        agregarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                agregarProducto();
+            }
+        });
+
+        JButton borrarButton = new JButton("Borrar Producto");
+        borrarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                borrarProducto();
+            }
+        });
+
+        JButton modificarButton = new JButton("Modificar Producto");
+        modificarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                modificarProducto();
+            }
+        });
+
+        JButton consultarButton = new JButton("Consultar Producto");
+        consultarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                consultarProducto();
+            }
+        });
+
+        JButton calcularTotalButton = new JButton("Calcular Total");
+        calcularTotalButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calcularTotal();
+            }
+        });
+
+        JPanel panel = new JPanel();
+        panel.add(agregarButton);
+        panel.add(borrarButton);
+        panel.add(modificarButton);
+        panel.add(consultarButton);
+        panel.add(calcularTotalButton);
+
+        add(new JScrollPane(jTable));
+        add(panel, "South");
+
+        setTitle("Inventario");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void agregarProducto() {
+        String nombre = JOptionPane.showInputDialog("Nombre del producto:");
+        double precio = Double.parseDouble(JOptionPane.showInputDialog("Precio del producto:"));
+        int cantidad = Integer.parseInt(JOptionPane.showInputDialog("Cantidad del producto:"));
+
+        // Verificar si el producto ya existe en el inventario
+        boolean productoExistente = false;
+        for (Producto producto : listaProductos) {
+            if (producto.nombre.equalsIgnoreCase(nombre)) {
+                // El producto ya existe, acumular la cantidad
+                producto.cantidad += cantidad;
+                productoExistente = true;
+                break;
+            }
+        }
+
+        // Si el producto no existe, agregar uno nuevo
+        if (!productoExistente) {
+            Producto nuevoProducto = new Producto(nombre, precio, cantidad);
+            listaProductos.add(nuevoProducto);
+            agregarProductoATabla(nuevoProducto);
+        }
+
+        actualizarTabla();
+    }
+
+    private void borrarProducto() {
+        int filaSeleccionada = jTable.getSelectedRow();
+
+        if (filaSeleccionada != -1) {
+            listaProductos.remove(filaSeleccionada);
+            tableModel.removeRow(filaSeleccionada);
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto para borrar.");
+        }
+    }
+
+    private void modificarProducto() {
+        int filaSeleccionada = jTable.getSelectedRow();
+
+        if (filaSeleccionada != -1) {
+            String nombre = JOptionPane.showInputDialog("Nuevo nombre del producto:");
+            double precio = Double.parseDouble(JOptionPane.showInputDialog("Nuevo precio del producto:"));
+            int cantidad = Integer.parseInt(JOptionPane.showInputDialog("Nueva cantidad del producto:"));
+
+            Producto productoModificado = new Producto(nombre, precio, cantidad);
+            listaProductos.set(filaSeleccionada, productoModificado);
+            actualizarTabla();
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto para modificar.");
+        }
+    }
+
+    private void consultarProducto() {
+        String nombre = JOptionPane.showInputDialog("Ingrese el nombre del producto a consultar:");
+
+        // Buscar el producto en la lista
+        for (Producto producto : listaProductos) {
+            if (producto.nombre.equalsIgnoreCase(nombre)) {
+                JOptionPane.showMessageDialog(this, "Producto encontrado:\nNombre: " + producto.nombre +
+                        "\nPrecio: $" + producto.precio + "\nCantidad: " + producto.cantidad);
+                return; // Terminar la función si el producto se encuentra
+            }
+        }
+
+        // Si el producto no se encuentra
+        JOptionPane.showMessageDialog(this, "Producto no encontrado.");
+    }
+
+    private void calcularTotal() {
+        double valorTotal = 0;
+
+        for (Producto producto : listaProductos) {
+            valorTotal += producto.calcularValor();
+        }
+
+        JOptionPane.showMessageDialog(this, "El valor total del inventario es: $" + valorTotal);
+    }
+
+    private void agregarProductoATabla(Producto producto) {
+        Object[] fila = {producto.nombre, producto.precio, producto.cantidad};
+        tableModel.addRow(fila);
+    }
+
+    private void actualizarTabla() {
+        tableModel.setRowCount(0);
+        for (Producto producto : listaProductos) {
+            agregarProductoATabla(producto);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {//creación y manipulación de la interfaz gráfica
+            public void run() {
+                new Inventario();
+            }
+        });
+    }
+}
